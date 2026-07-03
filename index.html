@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Salina Reserve - Digital Twin & Memberships</title>
+  <!-- SEO & Meta -->
+  <meta name="description" content="Dashboard digital de La Salina Reserve. Control virtual de cultivos de aguacate, monitoreo de sensores IoT y portal de membresías de agroforestería.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons via CDN (dynamic loading) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Login Screen Container -->
+  <div class="login-wrapper" id="login-wrapper">
+    <div class="login-card card">
+      <div class="login-header">
+        <div class="logo-icon" style="font-size: 3rem; margin-bottom: 0.5rem; text-align: center;">🌱</div>
+        <h2 style="font-family: var(--font-title); font-weight: 800; letter-spacing: 2px; text-align: center; color: white;">LA SALINA</h2>
+        <span style="font-family: var(--font-title); letter-spacing: 6px; font-size: 0.8rem; color: var(--text-secondary); text-align: center; display: block;">RESERVE</span>
+        <p class="tagline" style="text-align: center; margin-top: 0.5rem; font-style: italic; color: var(--gold);">"Donde la tierra produce patrimonio"</p>
+      </div>
+      
+      <form id="login-form" class="login-form" style="margin-top: 2rem;">
+        <h3 style="font-family: var(--font-title); font-size: 1.15rem; font-weight: 600; text-align: center; margin-bottom: 0.25rem;">Portal de Inversionistas</h3>
+        <p class="login-subtitle" style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; margin-bottom: 1.5rem;">Ingresa tus datos para acceder a tu hacienda digital</p>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="login-name">Nombre:</label>
+            <input type="text" id="login-name" class="form-control" placeholder="Ej: Juan" required>
+          </div>
+          <div class="form-group">
+            <label for="login-lastname">Apellido:</label>
+            <input type="text" id="login-lastname" class="form-control" placeholder="Ej: Pérez" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="login-email">Usuario o Correo:</label>
+          <input type="email" id="login-email" class="form-control" placeholder="inversionista@lasalina.com" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="login-password">Contraseña:</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Acceder a mi Hacienda</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-container" id="app-container" style="display: none;">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <div class="logo-icon">🌱</div>
+          <div class="logo-text">
+            <h2>LA SALINA</h2>
+            <span>RESERVE</span>
+          </div>
+        </div>
+        <p class="tagline">"Donde la tierra produce patrimonio"</p>
+      </div>
+
+      <nav class="sidebar-menu">
+        <button class="nav-item active" data-tab="hacienda">
+          <i data-lucide="map-pin"></i>
+          <span>Hacienda Digital</span>
+        </button>
+        <button class="nav-item" data-tab="iot">
+          <i data-lucide="cpu"></i>
+          <span>Monitoreo Remoto</span>
+        </button>
+        <button class="nav-item" data-tab="membresia">
+          <i data-lucide="award"></i>
+          <span>Membresías</span>
+        </button>
+        <button class="nav-item" data-tab="admin">
+          <i data-lucide="sliders"></i>
+          <span>Administrador</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="avatar">U</div>
+          <div class="user-info">
+            <span class="user-name" id="user-role-display">Miembro Semilla</span>
+            <span class="user-status"><span class="pulse-dot"></span>Conectado</span>
+          </div>
+          <button id="btn-logout" class="btn-logout" title="Cerrar Sesión">
+            <i data-lucide="log-out"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Dashboard Header -->
+      <header class="main-header">
+        <div class="header-left">
+          <h1 id="tab-title">Hacienda Digital</h1>
+          <p id="tab-subtitle" class="subtitle">Monitoreo y desarrollo de tus cultivos de aguacates de forma virtual.</p>
+        </div>
+        <div class="header-right">
+          <div class="location-badge">
+            <i data-lucide="map"></i>
+            <span>El Cerrito, Valle del Cauca</span>
+          </div>
+          <div class="notification-bell" id="notification-trigger">
+            <i data-lucide="bell"></i>
+            <span class="badge" id="alert-count">0</span>
+            <!-- Dropdown Alertas -->
+            <div class="alerts-dropdown" id="alerts-dropdown">
+              <div class="dropdown-header">
+                <h3>Alertas del Cultivo</h3>
+                <button id="clear-alerts">Limpiar</button>
+              </div>
+              <ul id="alerts-list">
+                <li class="empty-alerts">No hay alertas activas en el sistema.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- TAB: HACIENDA DIGITAL -->
+      <section id="hacienda-tab" class="tab-content active">
+        <!-- Dashboard Overview Grid -->
+        <div class="quick-stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon avocado"><i data-lucide="sprout"></i></div>
+            <div class="stat-data">
+              <span class="stat-label">Hectáreas Totales</span>
+              <span class="stat-value">20 Ha <small class="text-muted">(Fase 1)</small></span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon trees"><i data-lucide="trees"></i></div>
+            <div class="stat-data">
+              <span class="stat-label">Árboles Totales</span>
+              <span class="stat-value">10,000 <small class="text-success">(5K Aguacate)</small></span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon status"><i data-lucide="heart-pulse"></i></div>
+            <div class="stat-data">
+              <span class="stat-label">Salud Promedio</span>
+              <span class="stat-value text-success">98.4%</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon production"><i data-lucide="package"></i></div>
+            <div class="stat-data">
+              <span class="stat-label">Cosecha Proyectada</span>
+              <span class="stat-value" id="total-proj-harvest">0 kg</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hacienda-layout">
+          <!-- Interactive Map Container -->
+          <div class="map-container-wrapper card">
+            <div class="card-header">
+              <div class="header-titles">
+                <h3>Mapa Virtual de Hectáreas</h3>
+                <p>Haz clic en una hectárea para ver el desarrollo de los árboles</p>
+              </div>
+              <div class="map-controls">
+                <select id="hectare-filter" class="form-control">
+                  <option value="all">Ver todas las Hectáreas (20)</option>
+                  <optgroup label="Hectáreas de Aguacate (1 - 10)">
+                    <option value="1">Hectárea 1 (Aguacate)</option>
+                    <option value="2">Hectárea 2 (Aguacate)</option>
+                    <option value="3">Hectárea 3 (Aguacate)</option>
+                    <option value="4">Hectárea 4 (Aguacate)</option>
+                    <option value="5">Hectárea 5 (Aguacate)</option>
+                    <option value="6">Hectárea 6 (Aguacate)</option>
+                    <option value="7">Hectárea 7 (Aguacate)</option>
+                    <option value="8">Hectárea 8 (Aguacate)</option>
+                    <option value="9">Hectárea 9 (Aguacate)</option>
+                    <option value="10">Hectárea 10 (Aguacate)</option>
+                  </optgroup>
+                  <optgroup label="Hectáreas de Mango (11 - 20)">
+                    <option value="11">Hectárea 11 (Mango)</option>
+                    <option value="12">Hectárea 12 (Mango)</option>
+                    <option value="13">Hectárea 13 (Mango)</option>
+                    <option value="14">Hectárea 14 (Mango)</option>
+                    <option value="15">Hectárea 15 (Mango)</option>
+                    <option value="16">Hectárea 16 (Mango)</option>
+                    <option value="17">Hectárea 17 (Mango)</option>
+                    <option value="18">Hectárea 18 (Mango)</option>
+                    <option value="19">Hectárea 19 (Mango)</option>
+                    <option value="20">Hectárea 20 (Mango)</option>
+                  </optgroup>
+                </select>
+                <div class="legend">
+                  <span class="legend-item"><span class="dot avocado"></span> Aguacate</span>
+                  <span class="legend-item"><span class="dot mango"></span> Mango</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- The Grid Map -->
+            <div class="interactive-grid-map" id="interactive-grid-map">
+              <!-- Rendered via JS -->
+            </div>
+            
+            <!-- Trees Sub-grid in Hectare -->
+            <div class="hectare-detail-section" id="hectare-detail-section" style="display: none;">
+              <div class="hectare-detail-header">
+                <h4 id="hectare-detail-title">Hectárea 1 - Árboles</h4>
+                <div class="tree-filter-controls" style="display: flex; gap: 1rem; align-items: center;">
+                  <label class="switch-label" style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--gold);">
+                    <input type="checkbox" id="chk-my-trees" style="cursor: pointer; accent-color: var(--gold);">
+                    <span>Ver solo mis árboles</span>
+                  </label>
+                  <button class="btn btn-secondary btn-sm" id="close-hectare-detail">Atrás</button>
+                </div>
+              </div>
+              <div class="trees-grid" id="trees-grid">
+                <!-- Rendered via JS (100 sample trees per selected hectare) -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Inspector Side Panel -->
+          <div class="inspector-panel card" id="inspector-panel">
+            <div class="inspector-placeholder" id="inspector-placeholder">
+              <i data-lucide="info" class="placeholder-icon"></i>
+              <h3>Inspector de Árboles</h3>
+              <p>Selecciona un árbol en el mapa virtual para conocer su edad, etapa de desarrollo y salud.</p>
+            </div>
+            <div class="inspector-content" id="inspector-content" style="display: none;">
+              <div class="inspector-title-row">
+                <div>
+                  <h3 id="inspect-id">LSA-AGU-0842</h3>
+                  <span class="badge" id="inspect-type">Aguacate Organico</span>
+                </div>
+                <div class="health-indicator" id="inspect-health-badge">Excelente</div>
+              </div>
+              
+              <!-- Virtual Development Stage SVG Viewer -->
+              <div class="virtual-tree-canvas card-inset">
+                <div class="tree-stage-visualizer" id="tree-stage-visualizer">
+                  <!-- Dynamic SVG matching stage will render here -->
+                </div>
+                <div class="stage-tag" id="inspect-stage">Cosecha Lista</div>
+              </div>
+
+              <div class="inspector-data-grid">
+                <div class="data-item">
+                  <span class="data-label">Fecha de Siembra</span>
+                  <span class="data-value" id="inspect-planted">Junio 2026</span>
+                </div>
+                <div class="data-item">
+                  <span class="data-label">Fase de Siembra</span>
+                  <span class="data-value" id="inspect-phase">Fase 1 - Piloto</span>
+                </div>
+                <div class="data-item">
+                  <span class="data-label">Edad del Árbol</span>
+                  <span class="data-value" id="inspect-age">3.2 Años</span>
+                </div>
+                <div class="data-item">
+                  <span class="data-label">Tamaño Promedio</span>
+                  <span class="data-value" id="inspect-size">3.5 metros</span>
+                </div>
+                <div class="data-item">
+                  <span class="data-label">Producción Estimada</span>
+                  <span class="data-value" id="inspect-yield">220 kg / año</span>
+                </div>
+                <div class="data-item">
+                  <span class="data-label">Humedad de Suelo</span>
+                  <span class="data-value" id="inspect-moisture">62%</span>
+                </div>
+                <div class="data-item">
+                  <span class="data-label">Propietario</span>
+                  <span class="data-value" id="inspect-owner">Tú</span>
+                </div>
+                <div class="data-item">
+                  <span class="data-label">Membresía Asoc.</span>
+                  <span class="data-value" id="inspect-member-tier">Semilla</span>
+                </div>
+              </div>
+
+              <!-- History Log -->
+              <div class="treatment-log">
+                <h4>Historial de Gestión Orgánica</h4>
+                <ul class="log-list" id="inspect-logs">
+                  <!-- Rendered dynamically -->
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: MONITOREO REMOTO IoT -->
+      <section id="iot-tab" class="tab-content">
+        <div class="iot-grid">
+          
+          <!-- Telemetry Dashboard -->
+          <div class="telemetry-dashboard card">
+            <div class="card-header">
+              <h3>Sensores de Campo Remotos (IoT)</h3>
+              <span class="live-indicator"><span class="pulse-dot"></span> EN VIVO</span>
+            </div>
+            <div class="gauges-container">
+              <!-- Soil Moisture -->
+              <div class="gauge-card">
+                <div class="gauge-value" id="gauge-moisture">65%</div>
+                <div class="gauge-label">Humedad del Suelo</div>
+                <div class="gauge-bar-wrapper">
+                  <div class="gauge-bar info" id="bar-moisture" style="width: 65%;"></div>
+                </div>
+                <span class="gauge-desc">Óptimo (Rango: 55% - 75%)</span>
+              </div>
+              <!-- Temperature -->
+              <div class="gauge-card">
+                <div class="gauge-value" id="gauge-temp">24.8°C</div>
+                <div class="gauge-label">Temperatura de Ambiente</div>
+                <div class="gauge-bar-wrapper">
+                  <div class="gauge-bar warning" id="bar-temp" style="width: 58%;"></div>
+                </div>
+                <span class="gauge-desc">Valle del Cauca (Promedio)</span>
+              </div>
+              <!-- Soil pH -->
+              <div class="gauge-card">
+                <div class="gauge-value" id="gauge-ph">6.4</div>
+                <div class="gauge-label">pH del Suelo</div>
+                <div class="gauge-bar-wrapper">
+                  <div class="gauge-bar success" id="bar-ph" style="width: 64%;"></div>
+                </div>
+                <span class="gauge-desc">Excelente para Aguacate</span>
+              </div>
+              <!-- NPK levels -->
+              <div class="gauge-card">
+                <div class="gauge-value" id="gauge-npk">N-P-K Rico</div>
+                <div class="gauge-label">Nutrientes Orgánicos</div>
+                <div class="gauge-bar-wrapper">
+                  <div class="gauge-bar primary" id="bar-npk" style="width: 82%;"></div>
+                </div>
+                <span class="gauge-desc">Abono Bokashi & Humus</span>
+              </div>
+            </div>
+
+            <!-- Simple SVG Chart for sensor history -->
+            <div class="chart-section">
+              <h4>Histórico Semanal de Humedad y Riego</h4>
+              <div class="svg-chart-container">
+                <svg viewBox="0 0 500 150" class="svg-chart">
+                  <!-- Grid Lines -->
+                  <line x1="0" y1="30" x2="500" y2="30" stroke="#222f20" stroke-width="1"></line>
+                  <line x1="0" y1="75" x2="500" y2="75" stroke="#222f20" stroke-width="1"></line>
+                  <line x1="0" y1="120" x2="500" y2="120" stroke="#222f20" stroke-width="1"></line>
+                  <!-- Trend Line -->
+                  <path d="M 0 110 Q 80 50, 160 80 T 320 60 T 500 45" fill="none" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"></path>
+                  <path d="M 0 120 Q 80 90, 160 100 T 320 85 T 500 70" fill="none" stroke="#1565c0" stroke-width="2" stroke-dasharray="4" stroke-linecap="round"></path>
+                </svg>
+                <div class="chart-legend">
+                  <span class="legend-item"><span class="line-dot green"></span> Humedad de Suelo</span>
+                  <span class="legend-item"><span class="line-dot blue"></span> Umbral de Riego Automático</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Video Surveillance Feed & Drone Patrol -->
+          <div class="video-feed card">
+            <div class="card-header">
+              <h3>Monitoreo de Video & Dron</h3>
+              <div class="camera-selectors">
+                <button class="btn btn-secondary btn-sm active" id="cam-patrol">Patrulla de Dron</button>
+                <button class="btn btn-secondary btn-sm" id="cam-hacienda">Cámara Fija Finca</button>
+              </div>
+            </div>
+            <div class="video-wrapper">
+              <!-- Live dynamic SVG simulation or Canvas animation to represent drone feed -->
+              <div class="drone-simulation-screen">
+                <div class="hud-overlay">
+                  <div class="hud-left">ALT: 12m | VEL: 4m/s</div>
+                  <div class="hud-right">HD CROP PATROL | GPS OK</div>
+                </div>
+                <div class="drone-crosshair"></div>
+                <canvas id="drone-canvas" width="600" height="340"></canvas>
+              </div>
+              <div class="video-controls">
+                <button class="btn btn-primary btn-sm" id="btn-drone-scan"><i data-lucide="scan"></i> Escanear Campo</button>
+                <span class="status-indicator-span" id="drone-status-text">Dron patrullando Hectárea 4</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB: MEMBRESÍAS & PROYECCIÓN FINANCIERA -->
+      <section id="membresia-tab" class="tab-content">
+        <!-- Membership Card Selector -->
+        <div class="membership-levels">
+          <div class="member-card-interactive active" data-level="semilla">
+            <div class="card-glow green"></div>
+            <span class="tier-label">🌱 Semilla</span>
+            <h3>10 Árboles</h3>
+            <p class="price">$15,000,000 COP</p>
+            <ul class="card-features">
+              <li>Certificado de Miembro Fundador</li>
+              <li>Seguimiento virtual anual</li>
+              <li>Invitación a jornadas de siembra</li>
+              <li>Participación en comunidad</li>
+            </ul>
+            <button class="btn btn-primary btn-sm btn-buy-now" style="width: 100%; margin-top: 1.2rem;">Comprar Online</button>
+          </div>
+          <div class="member-card-interactive" data-level="bosque">
+            <div class="card-glow gold"></div>
+            <span class="tier-label">🌿 Bosque</span>
+            <h3>25 Árboles</h3>
+            <p class="price">$37,500,000 COP</p>
+            <ul class="card-features">
+              <li>Todos los beneficios Semilla</li>
+              <li>Reconocimiento especial</li>
+              <li>Noches de hospedaje gratis</li>
+              <li>Acceso prioritario a Fase 2</li>
+            </ul>
+            <button class="btn btn-primary btn-sm btn-buy-now" style="width: 100%; margin-top: 1.2rem;">Comprar Online</button>
+          </div>
+          <div class="member-card-interactive" data-level="reserva">
+            <div class="card-glow blue"></div>
+            <span class="tier-label">🏞️ Reserva</span>
+            <h3>50 Árboles</h3>
+            <p class="price">$75,000,000 COP</p>
+            <ul class="card-features">
+              <li>Todos los beneficios Bosque</li>
+              <li>Experiencias exclusivas Reserva</li>
+              <li>Invitación a encuentros privados</li>
+              <li>Descuentos en Centro de Experiencias</li>
+            </ul>
+            <button class="btn btn-primary btn-sm btn-buy-now" style="width: 100%; margin-top: 1.2rem;">Comprar Online</button>
+          </div>
+          <div class="member-card-interactive" data-level="legado">
+            <div class="card-glow purple"></div>
+            <span class="tier-label">👑 Legado</span>
+            <h3>100 Árboles</h3>
+            <p class="price">$150,000,000 COP</p>
+            <ul class="card-features">
+              <li>Todos los beneficios Reserva</li>
+              <li>Miembro Legado Fundador VIP</li>
+              <li>Acceso VIP permanente</li>
+              <li>Beneficios vitalicios</li>
+            </ul>
+            <button class="btn btn-primary btn-sm btn-buy-now" style="width: 100%; margin-top: 1.2rem;">Comprar Online</button>
+          </div>
+        </div>
+
+        <div class="membresia-details-grid">
+          <!-- Investment Simulator -->
+          <div class="simulator-card card">
+            <div class="card-header">
+              <h3>Simulador Financiero La Salina</h3>
+              <p>Proyección de producción e ingresos a 10 años</p>
+            </div>
+            
+            <div class="simulator-controls">
+              <div class="form-group">
+                <label for="sim-trees">Cantidad de Árboles Adquiridos:</label>
+                <input type="range" id="sim-trees" min="10" max="200" step="5" value="10">
+                <div class="slider-val"><span id="sim-trees-val">10</span> Árboles</div>
+              </div>
+              <div class="form-group">
+                <label for="sim-price">Precio Promedio de Venta (COP / Kilo):</label>
+                <input type="range" id="sim-price" min="3000" max="6000" step="100" value="4000">
+                <div class="slider-val">$<span id="sim-price-val">4,000</span> COP</div>
+              </div>
+            </div>
+
+            <div class="simulator-outputs">
+              <div class="output-item">
+                <span class="output-label">Inversión Inicial</span>
+                <span class="output-value text-gold" id="out-investment">$15,000,000 COP</span>
+              </div>
+              <div class="output-item">
+                <span class="output-label">Utilidad Neta Anual (Año 4-10)</span>
+                <span class="output-value text-success" id="out-annual-profit">$13,000,000 COP</span>
+              </div>
+              <div class="output-item">
+                <span class="output-label">Utilidad Acumulada a 10 años</span>
+                <span class="output-value text-success" id="out-total-profit">$91,000,000 COP</span>
+              </div>
+            </div>
+
+            <!-- Dynamic Projections Chart -->
+            <div class="chart-section">
+              <h4>Curva de Retorno de Inversión (Años 1 a 10)</h4>
+              <div class="projection-graph-container" id="projection-chart">
+                <!-- Generado mediante JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Certificate Generator -->
+          <div class="certificate-card card">
+            <div class="card-header">
+              <h3>Certificado Oficial de Membresía</h3>
+              <p>Certificado digital de propiedad y fundación</p>
+            </div>
+            
+            <div class="certificate-preview-area">
+              <div class="certificate-frame" id="certificate-frame">
+                <div class="cert-gold-border"></div>
+                <div class="cert-inner">
+                  <span class="cert-title">LA SALINA RESERVE</span>
+                  <span class="cert-subtitle">Reserva Agroforestal & Comunidad Privada</span>
+                  <div class="cert-divider"></div>
+                  <p class="cert-p">Por la presente se certifica que</p>
+                  <h4 class="cert-holder-name" id="cert-holder">INVERSIONISTA COPRORATIVO</h4>
+                  <p class="cert-p">es miembro fundador y ostenta el título de membresía</p>
+                  <h3 class="cert-level-name" id="cert-level">MIEMBRO SEMILLA</h3>
+                  <p class="cert-p">con derechos de producción y usufructo sobre</p>
+                  <p class="cert-shares"><strong id="cert-trees-count">10</strong> Árboles de Aguacate & Mango</p>
+                  <div class="cert-footer">
+                    <div class="cert-signature">
+                      <span class="sig-line"></span>
+                      <span>Representante Legal</span>
+                      <small>La Salina Reserve</small>
+                    </div>
+                    <div class="cert-stamp">
+                      <div class="stamp-circle">ORGANIC</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="cert-actions">
+              <div class="form-group">
+                <label for="cert-name-input">Nombre del Inversionista:</label>
+                <input type="text" id="cert-name-input" class="form-control" value="Inversionista Fundador">
+              </div>
+              <button class="btn btn-primary" id="btn-download-cert"><i data-lucide="download"></i> Descargar Certificado</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: ADMINISTRADOR -->
+      <section id="admin-tab" class="tab-content">
+        <div class="admin-grid">
+          
+          <!-- Data Feeder -->
+          <div class="admin-panel card">
+            <div class="card-header">
+              <h3>Actualización y Administración de Cultivos</h3>
+              <p>Suministrar información y actualizar el estado de desarrollo del predio.</p>
+            </div>
+            <form id="admin-update-form" class="admin-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="admin-phase-select">Fase de Siembra / Lote:</label>
+                  <select id="admin-phase-select" class="form-control">
+                    <option value="Fase 1 - Piloto">Fase 1 - Piloto (Siembra Junio 2026)</option>
+                    <option value="Fase 2 - Expansión">Fase 2 - Expansión (Siembra Enero 2027)</option>
+                    <option value="Fase 3 - Consolidación">Fase 3 - Consolidación (Siembra Marzo 2029)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="admin-sector">Sector / Hectárea:</label>
+                  <select id="admin-sector" class="form-control">
+                    <option value="1">Hectárea 1 - Aguacate</option>
+                    <option value="2">Hectárea 2 - Aguacate</option>
+                    <option value="3">Hectárea 3 - Aguacate</option>
+                    <option value="4">Hectárea 4 - Aguacate</option>
+                    <option value="5">Hectárea 5 - Aguacate</option>
+                    <option value="11">Hectárea 11 - Mango</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="admin-stage-select">Etapa de Desarrollo Virtual:</label>
+                  <select id="admin-stage-select" class="form-control">
+                    <option value="Siembra">Siembra (0 - 6 meses)</option>
+                    <option value="Vegetativo">Vegetativo (6 - 24 meses)</option>
+                    <option value="Floración">Floración (24 - 36 meses)</option>
+                    <option value="Fructificación">Fructificación (Año 3 - 4)</option>
+                    <option value="Cosecha">Cosecha Lista (Productivo)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="admin-health">Estado General de Salud:</label>
+                  <select id="admin-health" class="form-control">
+                    <option value="Excelente">Excelente (Estable)</option>
+                    <option value="Monitoreo">Monitoreo (Control de plagas)</option>
+                    <option value="Tratamiento">Bajo Tratamiento Orgánico</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="admin-yield-override">Rendimiento Estimado (kg/árbol/año):</label>
+                  <input type="number" id="admin-yield-override" class="form-control" value="220" min="50" max="800">
+                </div>
+              </div>
+
+              <hr class="form-divider">
+              <h4>Simulación de Sensores Remotos (IoT)</h4>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="admin-moisture-val">Humedad de Suelo (%):</label>
+                  <input type="range" id="admin-moisture-val" min="10" max="100" value="65" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label for="admin-temp-val">Temperatura (°C):</label>
+                  <input type="range" id="admin-temp-val" min="15" max="45" value="24" class="form-control">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="admin-log-input">Registrar Evento de Bitácora Orgánica:</label>
+                <input type="text" id="admin-log-input" class="form-control" placeholder="Ej: Aplicación de compost Bokashi e inoculantes fúngicos Trichoderma.">
+              </div>
+
+              <button type="submit" class="btn btn-primary" id="btn-submit-admin">Actualizar Hacienda</button>
+            </form>
+          </div>
+
+          <!-- Simulation & Alerts Center -->
+          <div class="admin-alerts card">
+            <div class="card-header">
+              <h3>Centro de Control y Emergencias</h3>
+              <p>Simular incidentes para verificar las notificaciones remotas de la hacienda.</p>
+            </div>
+            <div class="simulation-actions">
+              <button class="btn btn-warning" id="btn-sim-dry"><i data-lucide="droplet-off"></i> Simular Sequía (Baja Humedad)</button>
+              <button class="btn btn-danger" id="btn-sim-pest"><i data-lucide="bug"></i> Alerta de Plaga (Monitoreo Biológico)</button>
+              <button class="btn btn-success" id="btn-sim-rain"><i data-lucide="cloud-rain"></i> Activar Riego Automático</button>
+              <button class="btn btn-secondary" id="btn-sim-reset"><i data-lucide="refresh-cw"></i> Restablecer Hacienda a Estado Óptimo</button>
+            </div>
+            
+            <div class="system-logs card-inset">
+              <h4>Registro del Sistema</h4>
+              <div class="log-console" id="admin-console">
+                <div class="console-line">[SISTEMA] Hacienda Digital inicializada con éxito.</div>
+                <div class="console-line">[SISTEMA] 10,000 árboles registrados de forma virtual en El Cerrito.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+  <!-- Checkout Payment Modal -->
+  <div class="checkout-modal" id="checkout-modal" style="display: none;">
+    <div class="checkout-card card">
+      <div class="checkout-header">
+        <div class="lock-icon" style="font-size: 2rem; color: var(--gold); text-align: center; margin-bottom: 0.5rem;">🔒</div>
+        <h3 style="font-family: var(--font-title); font-size: 1.25rem; font-weight: 700; text-align: center; color: white;">Pasarela de Pago Segura</h3>
+        <p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center;">Simulación de pasarela de pago online de La Salina Reserve</p>
+      </div>
+      
+      <div class="checkout-summary card-inset" style="margin: 1.5rem 0; padding: 1rem;">
+        <h4 style="font-size: 0.85rem; color: white; margin-bottom: 0.5rem;">Detalle de la Membresía</h4>
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem;">
+          <span style="color: var(--text-secondary);">Membresía Seleccionada:</span>
+          <strong id="chk-tier-name" style="color: var(--gold);">MIEMBRO SEMILLA</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem;">
+          <span style="color: var(--text-secondary);">Cantidad de Árboles:</span>
+          <strong id="chk-trees-count">10 Árboles</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 0.5rem; border-top: 1px dashed var(--border); padding-top: 0.5rem;">
+          <span style="color: white; font-weight: bold;">Total a Pagar:</span>
+          <strong id="chk-total-price" style="color: var(--primary-light); font-size: 1rem;">$15,000,000 COP</strong>
+        </div>
+      </div>
+      
+      <form id="checkout-form">
+        <div class="form-group">
+          <label for="card-name">Nombre en la Tarjeta:</label>
+          <input type="text" id="card-name" class="form-control" placeholder="Ej: Juan Pérez" required>
+        </div>
+        <div class="form-group">
+          <label for="card-number">Número de Tarjeta:</label>
+          <input type="text" id="card-number" class="form-control" placeholder="4000 1234 5678 9010" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="card-expiry">Vencimiento:</label>
+            <input type="text" id="card-expiry" class="form-control" placeholder="MM/AA" required>
+          </div>
+          <div class="form-group">
+            <label for="card-cvv">CVV:</label>
+            <input type="password" id="card-cvv" class="form-control" placeholder="•••" maxlength="4" required>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-checkout" style="flex: 1;">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-confirm-payment" style="flex: 2;">Confirmar Pago</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
