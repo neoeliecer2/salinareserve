@@ -288,7 +288,6 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('login-lastname').value = lastname;
       document.getElementById('login-email').value = email;
       document.getElementById('login-password').value = 'Salina2026';
-      
       // Enviar formulario automáticamente
       if (loginForm) {
         const fullName = `${user} ${lastname}`;
@@ -296,7 +295,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!savedLevel) {
           localStorage.setItem('salina_membership_level_' + fullName, level);
         }
-        loginForm.dispatchEvent(new Event('submit'));
+        
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.click();
+        } else {
+          loginForm.dispatchEvent(new Event('submit', { cancelable: true }));
+        }
       }
     });
   });

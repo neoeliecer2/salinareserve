@@ -28,6 +28,85 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     
+    // Generación Procedural si no hay datos (primera vez o localStorage limpio)
+    if (!savedHacienda || !haciendaData.hectares || haciendaData.hectares.length === 0) {
+      haciendaData = { hectares: [], alerts: [] };
+      for (let h = 1; h <= 20; h++) {
+        const isAvocado = h <= 10;
+        const type = isAvocado ? 'Aguacate' : 'Mango';
+        
+        const hectare = {
+          id: h,
+          type: type,
+          name: `Hectárea ${h}`,
+          healthScore: 95 + Math.random() * 5,
+          averageMoisture: 60 + Math.round(Math.random() * 15),
+          averageTemp: 22 + Math.random() * 5,
+          stage: h % 4 === 0 ? 'Fructificación' : (h % 3 === 0 ? 'Floración' : 'Cosecha'),
+          trees: []
+        };
+
+        let phase = 'Fase 1 - Piloto';
+        let planted = 'Junio 2026';
+        let minAge = 3.0, maxAge = 4.5;
+        
+        if (h >= 8 && h <= 14) {
+          phase = 'Fase 2 - Expansión';
+          planted = 'Enero 2027';
+          minAge = 1.5;
+          maxAge = 2.8;
+        } else if (h >= 15) {
+          phase = 'Fase 3 - Consolidación';
+          planted = 'Marzo 2029';
+          minAge = 0.2;
+          maxAge = 0.9;
+        }
+
+        hectare.stage = maxAge > 3.0 ? 'Cosecha' : (maxAge > 2.0 ? 'Floración' : 'Siembra');
+
+        for (let t = 1; t <= 500; t++) {
+          const idStr = `LSA-${isAvocado ? 'AGU' : 'MAN'}-${h.toString().padStart(2, '0')}-${t.toString().padStart(3, '0')}`;
+          const randomAge = minAge + Math.random() * (maxAge - minAge);
+          
+          let stage = 'Siembra';
+          if (randomAge >= 3.0) stage = 'Cosecha';
+          else if (randomAge >= 2.2) stage = 'Fructificación';
+          else if (randomAge >= 1.5) stage = 'Floración';
+          else if (randomAge >= 0.8) stage = 'Vegetativo';
+
+          let size = (randomAge * 1.1).toFixed(1);
+          if (parseFloat(size) < 0.4) size = '0.4';
+
+          let health = 'Excelente';
+          const randHealth = Math.random();
+          if (randHealth > 0.97) health = 'Tratamiento';
+          else if (randHealth > 0.94) health = 'Monitoreo';
+
+          hectare.trees.push({
+            id: idStr,
+            type: type,
+            age: randomAge.toFixed(1),
+            stage: stage,
+            health: health,
+            moisture: Math.round(hectare.averageMoisture + (Math.random() * 6 - 3)),
+            planted: planted,
+            phase: phase,
+            size: `${size} metros`,
+            owner: 'Disponible',
+            memberTier: 'N/A',
+            logs: [
+              { date: '29/06/2026', text: 'Monitoreo remoto de vigor foliar por dron.' },
+              { date: '10/05/2026', text: `Fertilización orgánica con té de compost Bokashi (${hectare.type === 'Aguacate' ? 'dosis aguacate' : 'dosis mango'}).` },
+              { date: '14/03/2026', text: 'Liberación de avispas Trichogramma contra plagas.' },
+              { date: '01/01/2026', text: 'Control biológico de malezas por siembra mixta de leguminosas.' }
+            ]
+          });
+        }
+        haciendaData.hectares.push(hectare);
+      }
+      localStorage.setItem('salina_hacienda_data', JSON.stringify(haciendaData));
+    }
+    
     const savedAlerts = localStorage.getItem('salina_active_alerts');
     if (savedAlerts) {
       try {
