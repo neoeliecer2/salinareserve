@@ -3,8 +3,43 @@
 // ==========================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+  // --- STORAGE DE SEGURIDAD PARA PREVENIR ERRORES EN NAVEGADORES ---
+  const safeStorage = {
+    getItem(key) {
+      try {
+        return window.localStorage.getItem(key);
+      } catch (e) {
+        console.warn("localStorage.getItem no disponible:", e);
+        return null;
+      }
+    },
+    setItem(key, value) {
+      try {
+        window.localStorage.setItem(key, value);
+      } catch (e) {
+        console.warn("localStorage.setItem no disponible:", e);
+      }
+    },
+    removeItem(key) {
+      try {
+        window.localStorage.removeItem(key);
+      } catch (e) {
+        console.warn("localStorage.removeItem no disponible:", e);
+      }
+    }
+  };
+  const localStorage = safeStorage;
+
   // --- INICIALIZACIÓN DE ICONOS ---
-  lucide.createIcons();
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    try {
+      lucide.createIcons();
+    } catch (e) {
+      console.error("Error al inicializar iconos de Lucide:", e);
+    }
+  } else {
+    console.warn("Biblioteca Lucide no cargada.");
+  }
 
   // --- BASE DE DATOS DE HACIENDA VIRTUAL (10,000 Árboles en 20 Hectáreas) ---
   let haciendaData = {
