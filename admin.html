@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Salina Reserve - Panel de Administración Agrícola</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Specific overrides for Admin Dashboard */
+    body {
+      background: radial-gradient(circle at center, #0a110a 0%, #020402 100%);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem;
+    }
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+      padding-bottom: 1.5rem;
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      text-align: left;
+    }
+    .admin-table th, .admin-table td {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .admin-table th {
+      font-family: var(--font-title);
+      color: var(--gold);
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .admin-table td {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .admin-table tr:hover {
+      background: rgba(76, 175, 80, 0.04);
+    }
+    .badge-level {
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-semilla { background: rgba(76, 175, 80, 0.15); color: #81c784; border: 1px solid rgba(76, 175, 80, 0.3); }
+    .badge-bosque { background: rgba(212, 175, 55, 0.15); color: #ffd54f; border: 1px solid rgba(212, 175, 55, 0.3); }
+    .badge-reserva { background: rgba(21, 101, 192, 0.15); color: #64b5f6; border: 1px solid rgba(21, 101, 192, 0.3); }
+    .badge-legado { background: rgba(106, 27, 154, 0.15); color: #ba68c8; border: 1px solid rgba(106, 27, 154, 0.3); }
+    
+    .simulation-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--gold);
+      text-decoration: none;
+      font-family: var(--font-title);
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .back-btn:hover {
+      color: var(--gold-light);
+      transform: translateX(-3px);
+    }
+    .select-admin-level {
+      background: #111811;
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      color: white;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .select-admin-level:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <header class="admin-header">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.8rem;">
+          <span style="font-size: 2rem;">🚜</span>
+          <div>
+            <h1 style="font-family: var(--font-title); font-weight: 800; letter-spacing: 2px; color: white; margin: 0; font-size: 1.8rem;">LA SALINA RESERVE</h1>
+            <p style="font-family: var(--font-title); letter-spacing: 4px; font-size: 0.75rem; color: var(--gold); margin: 0; text-transform: uppercase;">Consola de Administración Central</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <a href="index.html" class="back-btn">
+          <i data-lucide="arrow-left"></i> Volver al Portal de Miembros
+        </a>
+      </div>
+    </header>
+
+    <!-- KPI Cards Grid -->
+    <div class="quick-stats-grid" style="margin-bottom: 2rem;">
+      <div class="stat-card">
+        <div class="stat-icon status" style="background: rgba(21, 101, 192, 0.15); color: var(--blue-light);"><i data-lucide="users"></i></div>
+        <div class="stat-data">
+          <span class="stat-label">Inversionistas Activos</span>
+          <span class="stat-value" id="kpi-investors">0</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon avocado"><i data-lucide="sprout"></i></div>
+        <div class="stat-data">
+          <span class="stat-label">Árboles Administrados</span>
+          <span class="stat-value">10,000 <small class="text-muted">(20 Ha)</small></span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon trees"><i data-lucide="heart-pulse"></i></div>
+        <div class="stat-data">
+          <span class="stat-label">Salud Predial Promedio</span>
+          <span class="stat-value text-success" id="kpi-health">98.4%</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon profit"><i data-lucide="dollar-sign"></i></div>
+        <div class="stat-data">
+          <span class="stat-label">Inversión Estimada</span>
+          <span class="stat-value text-gold" id="kpi-investment">$0 COP</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="admin-grid" style="display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 2rem;">
+      
+      <!-- Left Column: Investors List & Soil Update -->
+      <div style="display: flex; flex-direction: column; gap: 2rem;">
+        
+        <!-- Section: Investors List -->
+        <div class="card" style="padding: 1.8rem;">
+          <div class="card-header" style="margin-bottom: 1rem;">
+            <h3 style="font-family: var(--font-title); font-size: 1.2rem; color: white;">Control de Inversionistas de Prueba</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Supervisión de membresías y simulación de asignaciones en tiempo real.</p>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Inversionista</th>
+                  <th>Correo</th>
+                  <th>Membresía</th>
+                  <th>Árboles</th>
+                  <th>Ganancia Sim.</th>
+                  <th>Asignar Nivel</th>
+                </tr>
+              </thead>
+              <tbody id="investors-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section: Crop Management Form -->
+        <div class="admin-panel card" style="padding: 1.8rem;">
+          <div class="card-header" style="margin-bottom: 1.2rem;">
+            <h3 style="font-family: var(--font-title); font-size: 1.2rem; color: white;">Actualización de Cultivos (Gemelo Digital)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Actualizar el estado del lote y sincronizarlo con los sensores remotos del portal.</p>
+          </div>
+          <form id="admin-update-form" class="admin-form" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label for="admin-sector">Sector / Hectárea:</label>
+                <select id="admin-sector" class="form-control">
+                  <option value="1">Hectárea 1 - Aguacate</option>
+                  <option value="2">Hectárea 2 - Aguacate</option>
+                  <option value="3">Hectárea 3 - Aguacate</option>
+                  <option value="4">Hectárea 4 - Aguacate</option>
+                  <option value="5">Hectárea 5 - Aguacate</option>
+                  <option value="6">Hectárea 6 - Aguacate</option>
+                  <option value="7">Hectárea 7 - Aguacate</option>
+                  <option value="8">Hectárea 8 - Aguacate</option>
+                  <option value="9">Hectárea 9 - Aguacate</option>
+                  <option value="10">Hectárea 10 - Aguacate</option>
+                  <option value="11">Hectárea 11 - Mango</option>
+                  <option value="12">Hectárea 12 - Mango</option>
+                  <option value="13">Hectárea 13 - Mango</option>
+                  <option value="14">Hectárea 14 - Mango</option>
+                  <option value="15">Hectárea 15 - Mango</option>
+                  <option value="16">Hectárea 16 - Mango</option>
+                  <option value="17">Hectárea 17 - Mango</option>
+                  <option value="18">Hectárea 18 - Mango</option>
+                  <option value="19">Hectárea 19 - Mango</option>
+                  <option value="20">Hectárea 20 - Mango</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="admin-phase-select">Fase de Siembra / Lote:</label>
+                <select id="admin-phase-select" class="form-control">
+                  <option value="Fase 1 - Piloto">Fase 1 - Piloto (Siembra Junio 2026)</option>
+                  <option value="Fase 2 - Expansión">Fase 2 - Expansión (Siembra Enero 2027)</option>
+                  <option value="Fase 3 - Consolidación">Fase 3 - Consolidación (Siembra Marzo 2029)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label for="admin-stage-select">Etapa de Desarrollo Virtual:</label>
+                <select id="admin-stage-select" class="form-control">
+                  <option value="Siembra">Siembra (0 - 6 meses)</option>
+                  <option value="Vegetativo">Vegetativo (6 - 24 meses)</option>
+                  <option value="Floración">Floración (24 - 36 meses)</option>
+                  <option value="Fructificación">Fructificación (Año 3 - 4)</option>
+                  <option value="Cosecha">Cosecha Lista (Productivo)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="admin-health">Estado General de Salud:</label>
+                <select id="admin-health" class="form-control">
+                  <option value="Excelente">Excelente (Estable)</option>
+                  <option value="Monitoreo">Monitoreo (Control de plagas)</option>
+                  <option value="Tratamiento">Bajo Tratamiento Orgánico</option>
+                </select>
+              </div>
+            </div>
+
+            <hr class="form-divider" style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.05); margin: 0.5rem 0;">
+            <h4 style="font-family: var(--font-title); font-size: 0.95rem; color: var(--gold); margin: 0;">Simulación de Sensores Remotos (IoT)</h4>
+            
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label for="admin-moisture-val">Humedad de Suelo (%): <span id="lbl-moisture">65%</span></label>
+                <input type="range" id="admin-moisture-val" min="10" max="100" value="65" class="form-control" style="cursor: pointer;">
+              </div>
+              <div class="form-group">
+                <label for="admin-temp-val">Temperatura (°C): <span id="lbl-temp">24°C</span></label>
+                <input type="range" id="admin-temp-val" min="15" max="45" value="24" class="form-control" style="cursor: pointer;">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="admin-log-input">Registrar Evento en Bitácora Agrícola:</label>
+              <input type="text" id="admin-log-input" class="form-control" placeholder="Ej: Aplicación de fertilización orgánica Bokashi e inoculantes Trichoderma.">
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="btn-submit-admin" style="width: 100%; margin-top: 0.5rem;">Sincronizar y Actualizar Hacienda</button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Controls & System Console -->
+      <div style="display: flex; flex-direction: column; gap: 2rem;">
+        
+        <!-- Section: Emergency simulation -->
+        <div class="admin-alerts card" style="padding: 1.8rem;">
+          <div class="card-header" style="margin-bottom: 1.2rem;">
+            <h3 style="font-family: var(--font-title); font-size: 1.2rem; color: white;">Centro de Incidentes Agrícolas</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Disparar alertas de telemetría y ver las notificaciones en tiempo real en la hacienda.</p>
+          </div>
+          <div class="simulation-actions" style="display: flex; flex-direction: column; gap: 0.8rem;">
+            <button class="btn btn-warning" id="btn-sim-dry" style="width: 100%; font-size: 0.85rem; padding: 0.75rem;"><i data-lucide="droplet-off"></i> Simular Sequía (Hectárea 5)</button>
+            <button class="btn btn-danger" id="btn-sim-pest" style="width: 100%; font-size: 0.85rem; padding: 0.75rem;"><i data-lucide="bug"></i> Alerta de Plaga (Hectárea 2)</button>
+            <button class="btn btn-success" id="btn-sim-rain" style="width: 100%; font-size: 0.85rem; padding: 0.75rem;"><i data-lucide="cloud-rain"></i> Activar Riego por Goteo (Hacienda)</button>
+            <button class="btn btn-secondary" id="btn-sim-reset" style="width: 100%; font-size: 0.85rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);"><i data-lucide="refresh-cw"></i> Restablecer Hacienda a Estado Óptimo</button>
+          </div>
+        </div>
+
+        <!-- Section: System Console Logs -->
+        <div class="system-logs card" style="padding: 1.8rem; display: flex; flex-direction: column; flex-grow: 1; min-height: 380px;">
+          <div class="card-header" style="margin-bottom: 1rem;">
+            <h3 style="font-family: var(--font-title); font-size: 1.2rem; color: white;">Consola de Logs del Predio</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Historial del sistema, registros de telemetría y eventos de bitácora.</p>
+          </div>
+          <div class="log-console" id="admin-console" style="background: #030603; border: 1px solid rgba(76, 175, 80, 0.15); border-radius: 12px; padding: 1rem; font-family: monospace; font-size: 0.8rem; color: #81c784; overflow-y: auto; flex-grow: 1; max-height: 280px; display: flex; flex-direction: column; gap: 0.4rem;">
+            <div class="console-line">[SISTEMA] Consola de Administración Agrícola lista.</div>
+            <div class="console-line">[SISTEMA] Cargando datos telemétricos de La Salina Reserve...</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>

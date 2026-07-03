@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
 
   // --- BASE DE DATOS DE HACIENDA VIRTUAL (10,000 Árboles en 20 Hectáreas) ---
-  const haciendaData = {
+  let haciendaData = {
     hectares: [],
     alerts: []
   };
@@ -16,94 +16,121 @@ document.addEventListener('DOMContentLoaded', () => {
   const STAGES = ['Siembra', 'Vegetativo', 'Floración', 'Fructificación', 'Cosecha'];
   const HEALTH_STATUS = ['Excelente', 'Monitoreo', 'Tratamiento'];
 
-  for (let h = 1; h <= 20; h++) {
-    const isAvocado = h <= 10;
-    const type = isAvocado ? 'Aguacate' : 'Mango';
-    
-    // Configuración inicial de la Hectárea
-    const hectare = {
-      id: h,
-      type: type,
-      name: `Hectárea ${h}`,
-      healthScore: 95 + Math.random() * 5, // 95% - 100%
-      averageMoisture: 60 + Math.round(Math.random() * 15), // 60% - 75%
-      averageTemp: 22 + Math.random() * 5, // 22°C - 27°C
-      stage: h % 4 === 0 ? 'Fructificación' : (h % 3 === 0 ? 'Floración' : 'Cosecha'),
-      trees: []
-    };
-
-    // Determinar la fase de siembra según el número de hectárea
-    let phase = 'Fase 1 - Piloto';
-    let planted = 'Junio 2026';
-    let minAge = 3.0, maxAge = 4.5;
-    
-    if (h >= 8 && h <= 14) {
-      phase = 'Fase 2 - Expansión';
-      planted = 'Enero 2027';
-      minAge = 1.5;
-      maxAge = 2.8;
-    } else if (h >= 15) {
-      phase = 'Fase 3 - Consolidación';
-      planted = 'Marzo 2029';
-      minAge = 0.2;
-      maxAge = 0.9;
+  // Intentar cargar datos de la hacienda desde localStorage
+  const savedHacienda = localStorage.getItem('salina_hacienda_data');
+  if (savedHacienda) {
+    try {
+      haciendaData = JSON.parse(savedHacienda);
+    } catch(e) {
+      console.error("Error parsing hacienda data", e);
     }
+  }
 
-    hectare.stage = maxAge > 3.0 ? 'Cosecha' : (maxAge > 2.0 ? 'Floración' : 'Siembra');
-
-    // Generar 500 árboles por hectárea para el mapa interactivo (GIS Grid)
-    for (let t = 1; t <= 500; t++) {
-      const idStr = `LSA-${isAvocado ? 'AGU' : 'MAN'}-${h.toString().padStart(2, '0')}-${t.toString().padStart(3, '0')}`;
-      const randomAge = minAge + Math.random() * (maxAge - minAge);
+  if (!savedHacienda || !haciendaData.hectares || haciendaData.hectares.length === 0) {
+    haciendaData = { hectares: [], alerts: [] };
+    for (let h = 1; h <= 20; h++) {
+      const isAvocado = h <= 10;
+      const type = isAvocado ? 'Aguacate' : 'Mango';
       
-      // Asignar etapa según edad
-      let stage = 'Siembra';
-      if (randomAge >= 3.0) stage = 'Cosecha';
-      else if (randomAge >= 2.2) stage = 'Fructificación';
-      else if (randomAge >= 1.5) stage = 'Floración';
-      else if (randomAge >= 0.8) stage = 'Vegetativo';
-
-      // Tamaño aproximado según la edad (1.2m por año aprox)
-      let size = (randomAge * 1.1).toFixed(1);
-      if (parseFloat(size) < 0.4) size = '0.4';
-
-      // Asignar salud
-      let health = 'Excelente';
-      const randHealth = Math.random();
-      if (randHealth > 0.97) health = 'Tratamiento';
-      else if (randHealth > 0.94) health = 'Monitoreo';
-
-      hectare.trees.push({
-        id: idStr,
+      // Configuración inicial de la Hectárea
+      const hectare = {
+        id: h,
         type: type,
-        age: randomAge.toFixed(1),
-        stage: stage,
-        health: health,
-        moisture: Math.round(hectare.averageMoisture + (Math.random() * 6 - 3)),
-        planted: planted,
-        phase: phase,
-        size: `${size} metros`,
-        owner: 'Disponible',
-        memberTier: 'N/A',
-        logs: [
-          { date: '29/06/2026', text: 'Monitoreo remoto de vigor foliar por dron.' },
-          { date: '10/05/2026', text: `Fertilización orgánica con té de compost Bokashi (${hectare.type === 'Aguacate' ? 'dosis aguacate' : 'dosis mango'}).` },
-          { date: '14/03/2026', text: 'Liberación de avispas Trichogramma contra plagas.' },
-          { date: '01/01/2026', text: 'Control biológico de malezas por siembra mixta de leguminosas.' }
-        ]
-      });
-    }
+        name: `Hectárea ${h}`,
+        healthScore: 95 + Math.random() * 5, // 95% - 100%
+        averageMoisture: 60 + Math.round(Math.random() * 15), // 60% - 75%
+        averageTemp: 22 + Math.random() * 5, // 22°C - 27°C
+        stage: h % 4 === 0 ? 'Fructificación' : (h % 3 === 0 ? 'Floración' : 'Cosecha'),
+        trees: []
+      };
 
-    haciendaData.hectares.push(hectare);
+      // Determinar la fase de siembra según el número de hectárea
+      let phase = 'Fase 1 - Piloto';
+      let planted = 'Junio 2026';
+      let minAge = 3.0, maxAge = 4.5;
+      
+      if (h >= 8 && h <= 14) {
+        phase = 'Fase 2 - Expansión';
+        planted = 'Enero 2027';
+        minAge = 1.5;
+        maxAge = 2.8;
+      } else if (h >= 15) {
+        phase = 'Fase 3 - Consolidación';
+        planted = 'Marzo 2029';
+        minAge = 0.2;
+        maxAge = 0.9;
+      }
+
+      hectare.stage = maxAge > 3.0 ? 'Cosecha' : (maxAge > 2.0 ? 'Floración' : 'Siembra');
+
+      // Generar 500 árboles por hectárea para el mapa interactivo (GIS Grid)
+      for (let t = 1; t <= 500; t++) {
+        const idStr = `LSA-${isAvocado ? 'AGU' : 'MAN'}-${h.toString().padStart(2, '0')}-${t.toString().padStart(3, '0')}`;
+        const randomAge = minAge + Math.random() * (maxAge - minAge);
+        
+        // Asignar etapa según edad
+        let stage = 'Siembra';
+        if (randomAge >= 3.0) stage = 'Cosecha';
+        else if (randomAge >= 2.2) stage = 'Fructificación';
+        else if (randomAge >= 1.5) stage = 'Floración';
+        else if (randomAge >= 0.8) stage = 'Vegetativo';
+
+        // Tamaño aproximado según la edad (1.2m por año aprox)
+        let size = (randomAge * 1.1).toFixed(1);
+        if (parseFloat(size) < 0.4) size = '0.4';
+
+        // Asignar salud
+        let health = 'Excelente';
+        const randHealth = Math.random();
+        if (randHealth > 0.97) health = 'Tratamiento';
+        else if (randHealth > 0.94) health = 'Monitoreo';
+
+        hectare.trees.push({
+          id: idStr,
+          type: type,
+          age: randomAge.toFixed(1),
+          stage: stage,
+          health: health,
+          moisture: Math.round(hectare.averageMoisture + (Math.random() * 6 - 3)),
+          planted: planted,
+          phase: phase,
+          size: `${size} metros`,
+          owner: 'Disponible',
+          memberTier: 'N/A',
+          logs: [
+            { date: '29/06/2026', text: 'Monitoreo remoto de vigor foliar por dron.' },
+            { date: '10/05/2026', text: `Fertilización orgánica con té de compost Bokashi (${hectare.type === 'Aguacate' ? 'dosis aguacate' : 'dosis mango'}).` },
+            { date: '14/03/2026', text: 'Liberación de avispas Trichogramma contra plagas.' },
+            { date: '01/01/2026', text: 'Control biológico de malezas por siembra mixta de leguminosas.' }
+          ]
+        });
+      }
+
+      haciendaData.hectares.push(hectare);
+    }
+    localStorage.setItem('salina_hacienda_data', JSON.stringify(haciendaData));
   }
 
   // --- VARIABLES DE ESTADO ---
   let activeTab = 'hacienda';
   let selectedHectare = null;
   let selectedTree = null;
+
   let activeAlerts = [
     { id: 1, type: 'warning', msg: 'Hectárea 8: Humedad de suelo baja (51%). Riego programado.', date: '09:12' }
   ];
+
+  const savedAlerts = localStorage.getItem('salina_active_alerts');
+  if (savedAlerts) {
+    try {
+      activeAlerts = JSON.parse(savedAlerts);
+    } catch(e) {
+      console.error("Error parsing alerts data", e);
+    }
+  } else {
+    localStorage.setItem('salina_active_alerts', JSON.stringify(activeAlerts));
+  }
+
   let dronePatrolling = true;
   let droneHectare = 4;
   let clientMembershipLevel = 'semilla';
@@ -126,6 +153,41 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sidebarName) sidebarName.textContent = clientName;
     if (sidebarAvatar && namePart.length > 0) sidebarAvatar.textContent = namePart[0].toUpperCase();
     
+    // Cargar membresía guardada para este usuario
+    const savedLevel = localStorage.getItem('salina_membership_level_' + clientName);
+    if (savedLevel) {
+      clientMembershipLevel = savedLevel;
+    } else {
+      if (clientName === 'Juan Pérez') clientMembershipLevel = 'semilla';
+      else if (clientName === 'María Gómez') clientMembershipLevel = 'bosque';
+      else if (clientName === 'Carlos Restrepo') clientMembershipLevel = 'legado';
+      else clientMembershipLevel = 'semilla';
+      
+      localStorage.setItem('salina_membership_level_' + clientName, clientMembershipLevel);
+    }
+    
+    // Sincronizar UI con la membresía cargada
+    const tier = membershipTiers[clientMembershipLevel];
+    if (tier) {
+      simTrees.value = tier.count;
+      simTreesVal.textContent = tier.count;
+      userRoleDisplay.textContent = tier.name;
+      
+      memberCards.forEach(c => {
+        c.classList.remove('active');
+        if (c.getAttribute('data-level') === clientMembershipLevel) {
+          c.classList.add('active');
+        }
+      });
+    }
+    
+    assignTreeOwnership();
+    if (selectedHectare) {
+      renderTreesGrid(selectedHectare);
+    }
+    updateFinancialSimulator();
+    updateCertificate();
+    
     // Actualizar nombre predeterminado en el Certificado
     if (certNameInput) certNameInput.value = clientName;
     updateCertificate();
@@ -135,13 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
     appContainer.style.display = 'flex';
     
     logConsoleMessage(`Sesión recuperada: ${clientName}. Acceso concedido al Portal.`, 'system');
-  }
-
-  // Verificar si hay sesión previa guardada
-  const savedSession = localStorage.getItem('salina_session_active');
-  const savedName = localStorage.getItem('salina_client_name');
-  if (savedSession === 'true' && savedName) {
-    initUserSession(savedName);
   }
 
   if (loginForm) {
@@ -163,6 +218,41 @@ document.addEventListener('DOMContentLoaded', () => {
       // Guardar sesión en localStorage
       localStorage.setItem('salina_session_active', 'true');
       localStorage.setItem('salina_client_name', clientName);
+
+      // Cargar membresía guardada para este usuario
+      const savedLevel = localStorage.getItem('salina_membership_level_' + clientName);
+      if (savedLevel) {
+        clientMembershipLevel = savedLevel;
+      } else {
+        if (clientName === 'Juan Pérez') clientMembershipLevel = 'semilla';
+        else if (clientName === 'María Gómez') clientMembershipLevel = 'bosque';
+        else if (clientName === 'Carlos Restrepo') clientMembershipLevel = 'legado';
+        else clientMembershipLevel = 'semilla';
+        
+        localStorage.setItem('salina_membership_level_' + clientName, clientMembershipLevel);
+      }
+      
+      // Sincronizar UI con la membresía cargada
+      const tier = membershipTiers[clientMembershipLevel];
+      if (tier) {
+        simTrees.value = tier.count;
+        simTreesVal.textContent = tier.count;
+        userRoleDisplay.textContent = tier.name;
+        
+        memberCards.forEach(c => {
+          c.classList.remove('active');
+          if (c.getAttribute('data-level') === clientMembershipLevel) {
+            c.classList.add('active');
+          }
+        });
+      }
+      
+      assignTreeOwnership();
+      if (selectedHectare) {
+        renderTreesGrid(selectedHectare);
+      }
+      updateFinancialSimulator();
+      updateCertificate();
       
       // Actualizar perfil de usuario en el sidebar
       const sidebarName = document.querySelector('.user-name');
@@ -184,6 +274,32 @@ document.addEventListener('DOMContentLoaded', () => {
       logConsoleMessage(`Inversionista registrado: ${clientName}. Acceso concedido al Portal.`, 'system');
     });
   }
+
+  // --- INGRESO RÁPIDO CON USUARIOS DE PRUEBA ---
+  const btnTestUsers = document.querySelectorAll('.btn-test-user');
+  btnTestUsers.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const user = btn.getAttribute('data-user');
+      const lastname = btn.getAttribute('data-lastname');
+      const email = btn.getAttribute('data-email');
+      const level = btn.getAttribute('data-level');
+      
+      document.getElementById('login-name').value = user;
+      document.getElementById('login-lastname').value = lastname;
+      document.getElementById('login-email').value = email;
+      document.getElementById('login-password').value = 'Salina2026';
+      
+      // Enviar formulario automáticamente
+      if (loginForm) {
+        const fullName = `${user} ${lastname}`;
+        const savedLevel = localStorage.getItem('salina_membership_level_' + fullName);
+        if (!savedLevel) {
+          localStorage.setItem('salina_membership_level_' + fullName, level);
+        }
+        loginForm.dispatchEvent(new Event('submit'));
+      }
+    });
+  });
 
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
@@ -723,6 +839,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const level = card.getAttribute('data-level');
       clientMembershipLevel = level;
+      if (clientName) {
+        localStorage.setItem('salina_membership_level_' + clientName, clientMembershipLevel);
+      }
       const tier = membershipTiers[level];
 
       // Sincronizar simulador
@@ -807,6 +926,10 @@ document.addEventListener('DOMContentLoaded', () => {
         checkoutModal.style.display = 'none';
 
         // Actualizar nivel de membresía global
+        clientMembershipLevel = checkoutLevel;
+        if (clientName) {
+          localStorage.setItem('salina_membership_level_' + clientName, clientMembershipLevel);
+        }
         simTrees.value = tier.count;
         simTreesVal.textContent = tier.count;
         userRoleDisplay.textContent = tier.name;
@@ -864,6 +987,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Renderizar gráfico de barras interactivo
     renderProjectionChart(initialInvestment, profitY4, profitY5, annualNetProfit);
+
+    // Calcular ganancia acumulada real de los árboles actuales del usuario
+    calculateUserAccumulatedProfit();
+  }
+
+  function calculateUserAccumulatedProfit() {
+    let totalAccumProfit = 0;
+    const price = parseInt(simPrice.value) || 7000;
+    
+    // Recorrer los árboles asignados al usuario en la hacienda
+    haciendaData.hectares.forEach(h => {
+      h.trees.forEach(t => {
+        if (t.owner === 'Tú') {
+          const age = parseFloat(t.age);
+          
+          // La ganancia acumulada depende de la edad del árbol según el modelo financiero:
+          // Años 1-3 (edad 0.0 a 3.0): Cero retorno.
+          // Año 4 (edad 3.0 a 4.0): Producción 150 kg/árbol, 65% de margen neto.
+          // Año 5 (edad 4.0 a 5.0): Producción 300 kg/árbol, 65% de margen neto.
+          // Año 6+ (edad >= 5.0): Producción 500 kg/árbol al año, 65% de margen neto.
+          
+          let treeProfit = 0;
+          
+          if (age > 3.0) {
+            // Fracción del año 4 transcurrida
+            const y4Fraction = Math.min(1.0, age - 3.0);
+            treeProfit += y4Fraction * (150 * price * 0.65);
+          }
+          if (age > 4.0) {
+            // Fracción del año 5 transcurrida
+            const y5Fraction = Math.min(1.0, age - 4.0);
+            treeProfit += y5Fraction * (300 * price * 0.65);
+          }
+          if (age > 5.0) {
+            // Años a partir del año 6 en producción plena
+            const fullProdYears = age - 5.0;
+            treeProfit += fullProdYears * (500 * price * 0.65);
+          }
+          
+          totalAccumProfit += treeProfit;
+        }
+      });
+    });
+    
+    const profitEl = document.getElementById('user-accumulated-profit');
+    if (profitEl) {
+      profitEl.textContent = `$${Math.round(totalAccumProfit).toLocaleString('es-CO')} COP`;
+    }
   }
 
   function renderProjectionChart(initialInv, y4, y5, fullProfit) {
@@ -961,168 +1132,18 @@ document.addEventListener('DOMContentLoaded', () => {
   updateFinancialSimulator();
   updateCertificate();
 
-  // --- PANEL DE ADMINISTRACIÓN (DATA FEEDER) ---
-  const adminForm = document.getElementById('admin-update-form');
-  const adminSector = document.getElementById('admin-sector');
-  const adminStageSelect = document.getElementById('admin-stage-select');
-  const adminHealth = document.getElementById('admin-health');
-  const adminYieldOverride = document.getElementById('admin-yield-override');
-  const adminMoistureVal = document.getElementById('admin-moisture-val');
-  const adminTempVal = document.getElementById('admin-temp-val');
-  const adminLogInput = document.getElementById('admin-log-input');
+  // --- PORTAL DE ADMINISTRACIÓN (MIGRADO A ADMIN.HTML) ---
   const adminConsole = document.getElementById('admin-console');
 
   function logConsoleMessage(msg, type = 'system') {
+    console.log(`[${type.toUpperCase()}] ${msg}`);
+    if (!adminConsole) return;
     const line = document.createElement('div');
     line.className = `console-line ${type}`;
     const now = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     line.textContent = `[${now}] [${type.toUpperCase()}] ${msg}`;
     adminConsole.appendChild(line);
     adminConsole.scrollTop = adminConsole.scrollHeight;
-  }
-
-  if (adminForm) {
-    adminForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      const sectorId = parseInt(adminSector.value);
-      const stage = adminStageSelect.value;
-      const phase = document.getElementById('admin-phase-select').value;
-      const health = adminHealth.value;
-      const yieldVal = parseInt(adminYieldOverride.value);
-      const moisture = parseInt(adminMoistureVal.value);
-      const temp = parseInt(adminTempVal.value);
-      const customLog = adminLogInput.value;
-
-      // Buscar hectárea afectada
-      const hectare = haciendaData.hectares.find(h => h.id === sectorId);
-      if (hectare) {
-        hectare.stage = stage;
-        hectare.averageMoisture = moisture;
-        hectare.averageTemp = temp;
-        
-        // Modificar todos los árboles de la hectárea con las nuevas métricas
-        hectare.trees.forEach(tree => {
-          tree.stage = stage;
-          tree.health = health;
-          tree.phase = phase;
-          tree.moisture = Math.round(moisture + (Math.random() * 6 - 3));
-          
-          // Calcular planted date, age y size según la fase seleccionada
-          if (phase === 'Fase 1 - Piloto') {
-            tree.planted = 'Junio 2026';
-            tree.age = '3.5';
-            tree.size = '3.8 metros';
-          } else if (phase === 'Fase 2 - Expansión') {
-            tree.planted = 'Enero 2027';
-            tree.age = '2.2';
-            tree.size = '2.4 metros';
-          } else {
-            tree.planted = 'Marzo 2029';
-            tree.age = '0.5';
-            tree.size = '0.7 metros';
-          }
-          
-          if (customLog) {
-            const today = new Date().toLocaleDateString('es-CO');
-            tree.logs.unshift({ date: today, text: customLog });
-          }
-        });
-
-        // Recalcular score de salud
-        if (health === 'Excelente') hectare.healthScore = 98 + Math.random() * 2;
-        else if (health === 'Monitoreo') hectare.healthScore = 91 + Math.random() * 3;
-        else hectare.healthScore = 80 + Math.random() * 5;
-
-        logConsoleMessage(`Hectárea ${sectorId} actualizada con éxito a etapa '${stage}' y salud '${health}'.`, 'info');
-        
-        // Resetear form log
-        adminLogInput.value = '';
-        
-        // Refrescar mapa si está visible
-        renderHectareGrid();
-        if (selectedHectare && selectedHectare.id === sectorId) {
-          renderTreesGrid(selectedHectare);
-        }
-      }
-    });
-  }
-
-  // BOTONES DE SIMULACIÓN DE EMERGENCIAS
-  const btnSimDry = document.getElementById('btn-sim-dry');
-  const btnSimPest = document.getElementById('btn-sim-pest');
-  const btnSimRain = document.getElementById('btn-sim-rain');
-  const btnSimReset = document.getElementById('btn-sim-reset');
-
-  if (btnSimDry) {
-    btnSimDry.addEventListener('click', () => {
-      // Simular sequía en Hectárea 5
-      const h5 = haciendaData.hectares.find(h => h.id === 5);
-      if (h5) {
-        h5.averageMoisture = 22;
-        h5.trees.forEach(t => {
-          t.moisture = 22;
-          t.health = 'Monitoreo';
-          t.logs.unshift({ date: '29/06/2026', text: 'ALERTA: Sensor de humedad del suelo detectó humedad crítica por debajo del 25%.' });
-        });
-        h5.healthScore = 82;
-        renderHectareGrid();
-        
-        logConsoleMessage('Simulación de sequía activada en Hectárea 5. Humedad cae al 22%.', 'warn');
-        addAlert('danger', 'Hectárea 5: Humedad crítica del suelo (22%). Se requiere riego inmediato.');
-      }
-    });
-  }
-
-  if (btnSimPest) {
-    btnSimPest.addEventListener('click', () => {
-      // Simular plaga en Hectárea 2
-      const h2 = haciendaData.hectares.find(h => h.id === 2);
-      if (h2) {
-        h2.healthScore = 74;
-        h2.trees.slice(0, 15).forEach(t => {
-          t.health = 'Tratamiento';
-          t.logs.unshift({ date: '29/06/2026', text: 'ALERTA: Presencia atípica de masticadores de hoja. Iniciando tratamiento orgánico de neem.' });
-        });
-        renderHectareGrid();
-        
-        logConsoleMessage('Simulación de plaga activada en Hectárea 2. 15 árboles infectados.', 'error');
-        addAlert('danger', 'Hectárea 2: Reporte fitosanitario reporta presencia de plaga. Aplicando control biológico.');
-      }
-    });
-  }
-
-  if (btnSimRain) {
-    btnSimRain.addEventListener('click', () => {
-      // Regar todas las hectáreas (elevar humedad al 70%)
-      haciendaData.hectares.forEach(h => {
-        h.averageMoisture = 72;
-        h.trees.forEach(t => t.moisture = 72);
-      });
-      renderHectareGrid();
-      logConsoleMessage('Riego automático activado. Humedad promedio restablecida a 72%.', 'info');
-      addAlert('success', 'Hacienda: Riego automático por goteo completado. Humedad estable en 72%.');
-    });
-  }
-
-  if (btnSimReset) {
-    btnSimReset.addEventListener('click', () => {
-      // Restablecer
-      haciendaData.hectares.forEach(h => {
-        h.healthScore = 98.4;
-        h.averageMoisture = 65;
-        h.trees.forEach(t => {
-          t.health = 'Excelente';
-          t.moisture = 65;
-        });
-      });
-      renderHectareGrid();
-      logConsoleMessage('Hacienda restablecida a condiciones óptimas estándar.', 'system');
-      
-      // Limpiar alertas
-      activeAlerts = [];
-      updateAlertsDropdown();
-    });
   }
 
   // --- ALERTA DROPDOWN EN HEADER ---
@@ -1154,6 +1175,7 @@ document.addEventListener('DOMContentLoaded', () => {
       msg: msg,
       date: timeStr
     });
+    localStorage.setItem('salina_active_alerts', JSON.stringify(activeAlerts));
     updateAlertsDropdown();
   }
 
@@ -1188,6 +1210,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (clearAlertsBtn) {
     clearAlertsBtn.addEventListener('click', () => {
       activeAlerts = [];
+      localStorage.setItem('salina_active_alerts', JSON.stringify(activeAlerts));
       updateAlertsDropdown();
       logConsoleMessage('Alertas del sistema despejadas por el usuario.', 'system');
     });
@@ -1230,8 +1253,18 @@ document.addEventListener('DOMContentLoaded', () => {
       h11.trees[i].owner = 'Tú';
       h11.trees[i].memberTier = tierName;
     }
+
+    // Guardar cambios en localStorage
+    localStorage.setItem('salina_hacienda_data', JSON.stringify(haciendaData));
   }
 
   // Initial assignment
   assignTreeOwnership();
+
+  // Verificar si hay sesión previa guardada de forma segura
+  const savedSession = localStorage.getItem('salina_session_active');
+  const savedName = localStorage.getItem('salina_client_name');
+  if (savedSession === 'true' && savedName) {
+    initUserSession(savedName);
+  }
 });

@@ -1749,3 +1749,20 @@ body {
   padding: 2rem;
   border-radius: 18px;
 }
+
+/* Quick Login Test Users */
+.btn-test-user:hover {
+  background: rgba(76, 175, 80, 0.12) !important;
+  border-color: rgba(76, 175, 80, 0.5) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+}
+.btn-test-user:active {
+  transform: translateY(0);
+}
+
+.stat-icon.profit {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
